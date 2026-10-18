@@ -13,24 +13,13 @@ a running database or Redis instance.
 import time
 import threading
 
-# ---------------------------------------------------------------------------
-# 1. Base62 alphabet & codec
-# ---------------------------------------------------------------------------
+#1. Base62 alphabet & codec
 
 ALPHABET = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
 BASE = len(ALPHABET)  # 62
 
 
 def encode_base62(number: int) -> str:
-    """
-    Convert a positive integer into a Base62 string.
-
-    Examples:
-        0        → "0"
-        61       → "Z"
-        62       → "10"
-        100_000  → "q0U"
-    """
     if number < 0:
         raise ValueError(f"encode_base62 requires a non-negative integer, got {number}")
     if number == 0:
@@ -45,15 +34,6 @@ def encode_base62(number: int) -> str:
 
 
 def decode_base62(short_code: str) -> int:
-    """
-    Convert a Base62 string back into its original integer.
-
-    Examples:
-        "0"   → 0
-        "Z"   → 61
-        "10"  → 62
-        "q0U" → 100_000
-    """
     number = 0
     for char in short_code:
         if char not in ALPHABET:
@@ -62,20 +42,7 @@ def decode_base62(short_code: str) -> int:
     return number
 
 
-# ---------------------------------------------------------------------------
 # 2. Snowflake-style unique ID generator
-# ---------------------------------------------------------------------------
-#
-# Layout of the 64-bit ID (inspired by Twitter Snowflake):
-#
-#   [ 41 bits timestamp (ms since epoch) ]
-#   [ 10 bits machine/worker id          ]
-#   [ 12 bits sequence counter           ]
-#
-# This guarantees:
-#   - Monotonically increasing IDs  →  no collisions
-#   - ~4096 IDs per millisecond per worker
-#   - IDs stay sortable by creation time
 
 _EPOCH = 1_700_000_000_000        # custom epoch (ms) — Nov 2023
 _WORKER_ID = 1                    # change per deployment instance (0-1023)
@@ -96,10 +63,6 @@ def _current_ms() -> int:
 
 
 def generate_unique_id() -> int:
-    """
-    Generate a globally unique, time-ordered 64-bit integer.
-    Thread-safe — uses a lock to guard the sequence counter.
-    """
     global _last_timestamp, _sequence
 
     with _lock:
@@ -125,13 +88,6 @@ def generate_unique_id() -> int:
 
 
 def generate_short_code() -> str:
-    """
-    Generate a short code by:
-      1. Creating a unique Snowflake-style integer ID
-      2. Base62-encoding it into a compact string (~7-10 chars)
-
-    Example output:  "2b9A4xQ"
-    """
     unique_id = generate_unique_id()
     code = encode_base62(unique_id)
 
@@ -142,11 +98,7 @@ def generate_short_code() -> str:
 
     return code
 
-
-# ---------------------------------------------------------------------------
 # 3. Reserved word filter
-# ---------------------------------------------------------------------------
-
 RESERVED_WORDS: frozenset[str] = frozenset({
     "api", "docs", "redoc", "health", "static",
     "admin", "login", "logout", "register", "favicon.ico",
