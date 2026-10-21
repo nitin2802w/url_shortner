@@ -5,6 +5,7 @@ from fastapi import FastAPI
 from app.core.config import settings
 from app.db.session import close_redis, engine
 from app.api.v1.routes.health import router as health_router
+from app.api.v1.routes.shorten import router as shorten_router
 
 
 @asynccontextmanager
@@ -28,14 +29,13 @@ app = FastAPI(
 )
 
 # ---------------------------------------------------------------------------
-# Routers – will be expanded in later modules
+# Routers
 # ---------------------------------------------------------------------------
 app.include_router(health_router, tags=["Health"])
+app.include_router(shorten_router, prefix="/api/v1", tags=["Shorten"])
 
-# Module 3+: uncomment as you build each module
-# from app.api.v1.routes.shorten import router as shorten_router
+# Module 4+: uncomment as you build each module
 # from app.api.v1.routes.redirect import router as redirect_router
 # from app.api.v1.routes.analytics import router as analytics_router
-# app.include_router(shorten_router, prefix="/api/v1")
 # app.include_router(redirect_router)
 # app.include_router(analytics_router, prefix="/api/v1")

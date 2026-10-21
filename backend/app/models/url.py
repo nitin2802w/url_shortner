@@ -7,7 +7,7 @@ Tables:
 """
 
 import hashlib
-from datetime import datetime, timezone
+from datetime import datetime
 
 from sqlalchemy import (
     BigInteger,
@@ -35,9 +35,6 @@ class URL(Base):
     long_url: Mapped[str] = mapped_column(Text, nullable=False)
     custom_alias: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
     clicks: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
-    expires_at: Mapped[datetime | None] = mapped_column(
-        DateTime(timezone=True), nullable=True, default=None
-    )
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         nullable=False,
@@ -54,12 +51,6 @@ class URL(Base):
     click_events: Mapped[list["ClickAnalytic"]] = relationship(
         "ClickAnalytic", back_populates="url", cascade="all, delete-orphan"
     )
-
-    def is_expired(self) -> bool:
-        """Return True if the URL has passed its expiration timestamp."""
-        if self.expires_at is None:
-            return False
-        return datetime.now(timezone.utc) > self.expires_at
 
     def __repr__(self) -> str:
         return f"<URL id={self.id} short_code={self.short_code!r}>"
