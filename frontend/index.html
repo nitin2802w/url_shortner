@@ -1,33 +1,14 @@
 <!DOCTYPE html>
 <html lang="en">
-    <head>
-        <meta charset="UTF-8"/>
-        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title>SHRINK</title>
-        <!--Font from Google Fonts-->
-        <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
-        <link rel="stylesheet" href="styles.css" />
-    </head>
-    <body>
-        <!-- Top bar : logo on left -->
-        <header>
-            <a href="/" class="logo">SHRINK</a>
-        </header>
-
-        <!-- Big headline -->
-         <h1>SHORTEN<br>IT. NOW.</h1>
-
-         <!-- URL input + GO button-->
-          <form class="url-box">
-            <input typr="url" placeholder="PASTE LONG URL" required>
-            <button type="submit">GO →</button>
-          </form>
-
-          <!-- Result area (make this appear with JavaScript later)-->
-           <section class="result">
-            <p>Your short link</p>
-            <a href="#">shrink.com/abc123</a>
-            <button type="button">Copy link</button>
-           </section>
-    </body>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>SHRINK — URL Shortener</title>
+    <meta name="description" content="SHRINK — The fastest, cleanest URL shortener. Paste your link, get a short one instantly." />
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet" />
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.jsx"></script>
+  </body>
 </html>

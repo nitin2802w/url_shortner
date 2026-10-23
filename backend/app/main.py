@@ -1,6 +1,7 @@
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 
 from app.core.config import settings
 from app.db.session import close_redis, engine
@@ -27,6 +28,17 @@ app = FastAPI(
     version="1.0.0",
     description="A high-performance URL shortener built with FastAPI, PostgreSQL & Redis.",
     lifespan=lifespan,
+)
+
+# ---------------------------------------------------------------------------
+# CORS — allow any localhost port (Vite can use 5173, 5174, etc.)
+# ---------------------------------------------------------------------------
+app.add_middleware(
+    CORSMiddleware,
+    allow_origin_regex=r"http://localhost:\d+",
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
 # ---------------------------------------------------------------------------
