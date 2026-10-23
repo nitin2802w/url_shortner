@@ -22,7 +22,7 @@ export default function ResultCard({ data }) {
         target="_blank"
         rel="noopener noreferrer"
       >
-        {data.short_url}
+        <span className="result-domain">shrink/</span>{data.short_code}
       </a>
 
       <p className="result-original">↳ {data.long_url}</p>

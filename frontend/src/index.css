@@ -178,6 +178,11 @@ button { font-family: inherit; cursor: pointer; }
 }
 .result-link:hover { color: var(--pink); }
 
+.result-domain {
+  opacity: 0.35;
+  font-size: 22px;
+}
+
 .result-original {
   font-size: 13px;
   opacity: 0.4;
