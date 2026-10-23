@@ -1,6 +1,7 @@
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 
 from app.core.config import settings
 from app.db.session import close_redis, engine
@@ -27,6 +28,17 @@ app = FastAPI(
     version="1.0.0",
     description="A high-performance URL shortener built with FastAPI, PostgreSQL & Redis.",
     lifespan=lifespan,
+)
+
+# ---------------------------------------------------------------------------
+# CORS — allow React dev server (port 5173) to call the API
+# ---------------------------------------------------------------------------
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:5173"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
 # ---------------------------------------------------------------------------
