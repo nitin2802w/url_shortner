@@ -54,3 +54,18 @@ class ShortenResponse(BaseModel):
     created_at: datetime
 
     model_config = {"from_attributes": True}
+
+
+class StatsResponse(BaseModel):
+    short_code: str
+    short_url: str
+    long_url: str
+    custom_alias: bool
+    total_clicks: int
+    clicks: int
+    created_at: datetime
+    device_breakdown: dict[str, int]
+    top_browsers: dict[str, int]
+
+    model_config = {"from_attributes": True}
+
