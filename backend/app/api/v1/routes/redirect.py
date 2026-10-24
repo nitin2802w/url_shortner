@@ -2,13 +2,14 @@
 GET /{short_code} — Redirect Endpoint (Module 4)
 """
 
-from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, status
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Request, status
 from fastapi.responses import RedirectResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 import redis.asyncio as aioredis
 
 from app.api.dependencies import get_db, get_redis
-from app.services.url_service import resolve_short_code, increment_click_count
+from app.services.url_service import resolve_short_code
+from app.services.analytics_service import record_click
 
 router = APIRouter()
 
@@ -31,6 +32,7 @@ router = APIRouter()
 )
 async def redirect_to_url(
     short_code: str,
+    request: Request,
     background_tasks: BackgroundTasks,
     db: AsyncSession = Depends(get_db),
     redis: aioredis.Redis = Depends(get_redis),
@@ -44,7 +46,19 @@ async def redirect_to_url(
             detail=f"Short code '{short_code}' not found.",
         )
 
-    # Fire-and-forget: increment click counter AFTER response is sent
-    background_tasks.add_task(increment_click_count, short_code, db)
+    # Extract client IP, user agent, referrer
+    forwarded = request.headers.get("x-forwarded-for")
+    client_ip = forwarded.split(",")[0].strip() if forwarded else (request.client.host if request.client else None)
+    user_agent = request.headers.get("user-agent")
+    referrer = request.headers.get("referer")
+
+    # Fire-and-forget: record analytics AFTER response is sent
+    background_tasks.add_task(
+        record_click,
+        short_code=short_code,
+        ip=client_ip,
+        user_agent=user_agent,
+        referrer=referrer,
+    )
 
     return RedirectResponse(url=long_url, status_code=status.HTTP_302_FOUND)

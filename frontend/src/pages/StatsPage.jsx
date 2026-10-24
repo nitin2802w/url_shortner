@@ -26,6 +26,10 @@ export default function StatsPage() {
     })
   }
 
+  const totalClicks = stats?.total_clicks ?? stats?.clicks ?? 0
+  const deviceEntries = Object.entries(stats?.device_breakdown || {})
+  const browserEntries = Object.entries(stats?.top_browsers || {})
+
   return (
     <>
       <Header />
@@ -38,9 +42,6 @@ export default function StatsPage() {
         {error && (
           <div style={{ color: 'var(--pink)', fontWeight: 700, fontSize: 18 }}>
             <p>⚠ {error}</p>
-            <p style={{ opacity: 0.5, fontSize: 14, marginTop: 8, fontWeight: 500 }}>
-              Full analytics coming in Module 5.
-            </p>
           </div>
         )}
 
@@ -48,7 +49,7 @@ export default function StatsPage() {
           <>
             <div className="stats-grid">
               <div className="stat-box">
-                <div className="stat-value">{stats.clicks ?? 0}</div>
+                <div className="stat-value">{totalClicks}</div>
                 <div className="stat-label">TOTAL CLICKS</div>
               </div>
               <div className="stat-box">
@@ -62,6 +63,57 @@ export default function StatsPage() {
                   {stats.custom_alias ? 'CUSTOM' : 'AUTO'}
                 </div>
                 <div className="stat-label">ALIAS TYPE</div>
+              </div>
+            </div>
+
+            {/* Device & Browser Breakdowns */}
+            <div className="stats-breakdown-row">
+              <div className="breakdown-card">
+                <h3 className="breakdown-title">DEVICE BREAKDOWN</h3>
+                {deviceEntries.length === 0 ? (
+                  <p className="no-data">No click data yet</p>
+                ) : (
+                  <div className="breakdown-list">
+                    {deviceEntries.map(([device, count]) => {
+                      const pct = totalClicks > 0 ? Math.round((count / totalClicks) * 100) : 0
+                      return (
+                        <div key={device} className="breakdown-item">
+                          <div className="breakdown-label-row">
+                            <span className="breakdown-name">{device.toUpperCase()}</span>
+                            <span className="breakdown-count">{count} ({pct}%)</span>
+                          </div>
+                          <div className="bar-container">
+                            <div className="bar-fill" style={{ width: `${pct}%` }}></div>
+                          </div>
+                        </div>
+                      )
+                    })}
+                  </div>
+                )}
+              </div>
+
+              <div className="breakdown-card">
+                <h3 className="breakdown-title">TOP BROWSERS</h3>
+                {browserEntries.length === 0 ? (
+                  <p className="no-data">No click data yet</p>
+                ) : (
+                  <div className="breakdown-list">
+                    {browserEntries.map(([browser, count]) => {
+                      const pct = totalClicks > 0 ? Math.round((count / totalClicks) * 100) : 0
+                      return (
+                        <div key={browser} className="breakdown-item">
+                          <div className="breakdown-label-row">
+                            <span className="breakdown-name">{browser}</span>
+                            <span className="breakdown-count">{count} ({pct}%)</span>
+                          </div>
+                          <div className="bar-container">
+                            <div className="bar-fill pink" style={{ width: `${pct}%` }}></div>
+                          </div>
+                        </div>
+                      )
+                    })}
+                  </div>
+                )}
               </div>
             </div>
 

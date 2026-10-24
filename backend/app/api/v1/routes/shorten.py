@@ -2,7 +2,7 @@
 POST /api/v1/shorten — URL Shortening Endpoint (Module 3)
 """
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Request, status
 from sqlalchemy.ext.asyncio import AsyncSession
 import redis.asyncio as aioredis
 
@@ -10,6 +10,7 @@ from app.api.dependencies import get_db, get_redis
 from app.schemas.url import ShortenRequest, ShortenResponse
 from app.services.url_service import create_short_url
 from app.core.config import settings
+from app.core.limiter import limiter
 
 router = APIRouter()
 
@@ -22,10 +23,13 @@ router = APIRouter()
     description=(
         "Accepts a long URL and returns a shortened version. "
         "Optionally accepts a custom alias (3–16 alphanumeric chars). "
-        "Returns **409 Conflict** if the custom alias is already taken."
+        "Returns **409 Conflict** if the custom alias is already taken. "
+        "Rate-limited to 10 requests per minute per IP."
     ),
 )
+@limiter.limit("10/minute")
 async def shorten_url(
+    request: Request,
     payload: ShortenRequest,
     db: AsyncSession = Depends(get_db),
     redis: aioredis.Redis = Depends(get_redis),

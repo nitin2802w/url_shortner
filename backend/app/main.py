@@ -1,13 +1,18 @@
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
+from slowapi import _rate_limit_exceeded_handler
+from slowapi.errors import RateLimitExceeded
+from slowapi.middleware import SlowAPIMiddleware
 
 from app.core.config import settings
+from app.core.limiter import limiter
 from app.db.session import close_redis, engine
 from app.api.v1.routes.health import router as health_router
 from app.api.v1.routes.shorten import router as shorten_router
 from app.api.v1.routes.redirect import router as redirect_router
+from app.api.v1.routes.analytics import router as analytics_router
 
 
 @asynccontextmanager
@@ -31,6 +36,25 @@ app = FastAPI(
 )
 
 # ---------------------------------------------------------------------------
+# Rate Limiting (Module 6)
+# ---------------------------------------------------------------------------
+app.state.limiter = limiter
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
+app.add_middleware(SlowAPIMiddleware)
+
+# ---------------------------------------------------------------------------
+# Security Headers Middleware (Module 6)
+# ---------------------------------------------------------------------------
+@app.middleware("http")
+async def add_security_headers(request: Request, call_next):
+    response = await call_next(request)
+    response.headers["X-Content-Type-Options"] = "nosniff"
+    response.headers["X-Frame-Options"] = "DENY"
+    response.headers["X-XSS-Protection"] = "1; mode=block"
+    response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
+    return response
+
+# ---------------------------------------------------------------------------
 # CORS — allow any localhost port (Vite can use 5173, 5174, etc.)
 # ---------------------------------------------------------------------------
 app.add_middleware(
@@ -46,8 +70,5 @@ app.add_middleware(
 # ---------------------------------------------------------------------------
 app.include_router(health_router, tags=["Health"])
 app.include_router(shorten_router, prefix="/api/v1", tags=["Shorten"])
+app.include_router(analytics_router, prefix="/api/v1", tags=["Analytics"])
 app.include_router(redirect_router, tags=["Redirect"])
-
-# Module 5+: uncomment as you build each module
-# from app.api.v1.routes.analytics import router as analytics_router
-# app.include_router(analytics_router, prefix="/api/v1")
