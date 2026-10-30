@@ -1,9 +1,0 @@
-# Frontend
-
-This folder is reserved for the URL Shortener frontend.
-
-It will be built in **Module 6** using a simple web UI (Jinja2 + Tailwind CSS or React)
-with the following features:
-- URL input form
-- Copy-to-clipboard button
-- QR code generator

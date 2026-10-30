@@ -1,4 +1,6 @@
-const API_BASE = 'http://localhost:8000'
+// In production: set VITE_API_URL in Vercel dashboard to your Render backend URL
+// In development: falls back to http://localhost:8000
+const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:8000'
 
 /**
  * POST /api/v1/shorten

@@ -1,0 +1,166 @@
+================================================================================
+                    SHRINK URL SHORTENER — CHEAT SHEET OF COMMANDS
+================================================================================
+
+All commands are formatted for Windows PowerShell. Run them from your project root:
+  E:\New folder (3)\url_shortner
+
+
+================================================================================
+1. DOCKER & CONTAINERS
+================================================================================
+
+# Start Docker containers in the background (PostgreSQL + Redis)
+cd "E:\New folder (3)\url_shortner\backend"
+docker compose up -d
+
+# Check if the containers are currently running
+docker ps
+
+# Stop all containers
+cd "E:\New folder (3)\url_shortner\backend"
+docker compose down
+
+# Stop containers AND delete the database volume (clean reset)
+# CAUTION: This wipes all stored URLs and clicks!
+docker compose down -v
+
+# View live container logs
+docker logs -f shortener_db
+docker logs -f shortener_redis
+
+
+================================================================================
+2. DATABASE (PostgreSQL) COMMANDS
+================================================================================
+
+# Connect directly to the PostgreSQL shell (psql)
+docker exec -it shortener_db psql -U postgres -d urlshortener
+
+# Quick check: List all tables in the database
+docker exec -it shortener_db psql -U postgres -d urlshortener -c "\dt"
+
+# View all shortened URLs
+docker exec -it shortener_db psql -U postgres -d urlshortener -c "SELECT id, short_code, long_url, clicks, custom_alias, created_at FROM urls;"
+
+# View the latest 10 click analytics records
+docker exec -it shortener_db psql -U postgres -d urlshortener -c "SELECT id, url_id, device_type, browser, ip_hash, clicked_at FROM click_analytics ORDER BY clicked_at DESC LIMIT 10;"
+
+# Count total URLs and total clicks in the database
+docker exec -it shortener_db psql -U postgres -d urlshortener -c "SELECT count(*) AS total_urls, sum(clicks) AS total_clicks FROM urls;"
+
+# Check Alembic migration version currently applied
+docker exec -it shortener_db psql -U postgres -d urlshortener -c "SELECT * FROM alembic_version;"
+
+
+================================================================================
+3. CACHE (Redis) COMMANDS
+================================================================================
+
+# Open interactive Redis CLI shell
+docker exec -it shortener_redis redis-cli
+
+# Quick test: Ping Redis (should return PONG)
+docker exec -it shortener_redis redis-cli ping
+
+# List all keys currently cached in Redis
+docker exec -it shortener_redis redis-cli keys "*"
+
+# Check the cached long URL for a specific short code (e.g. 'git')
+docker exec -it shortener_redis redis-cli get "url:git"
+
+# Check the remaining TTL (time-to-live in seconds) of a cached URL
+docker exec -it shortener_redis redis-cli ttl "url:git"
+
+# Clear the entire Redis cache (flush all keys)
+docker exec -it shortener_redis redis-cli flushall
+
+# Watch live Redis commands in real-time as requests happen
+docker exec -it shortener_redis redis-cli monitor
+
+
+================================================================================
+4. ALEMBIC DATABASE MIGRATIONS
+================================================================================
+
+# Apply all pending migrations to the PostgreSQL database
+cd "E:\New folder (3)\url_shortner\backend"
+alembic upgrade head
+
+# Check the current migration revision
+cd "E:\New folder (3)\url_shortner\backend"
+alembic current
+
+# Create a new migration revision after changing models
+cd "E:\New folder (3)\url_shortner\backend"
+alembic revision --autogenerate -m "describe_your_change_here"
+
+
+================================================================================
+5. RUNNING THE SERVERS
+================================================================================
+
+# START BACKEND SERVER (FastAPI with auto-reload on port 8000)
+cd "E:\New folder (3)\url_shortner\backend"
+uvicorn app.main:app --reload --port 8000
+
+# START FRONTEND SERVER (React + Vite dev server)
+cd "E:\New folder (3)\url_shortner\frontend"
+npm run dev
+
+# BUILD FRONTEND FOR PRODUCTION
+cd "E:\New folder (3)\url_shortner\frontend"
+npm run build
+
+
+================================================================================
+6. TESTING THE APIS VIA POWERSHELL / CURL
+================================================================================
+
+# Check Backend Health Endpoint
+curl http://localhost:8000/health
+
+# Shorten a URL (Auto-generated code)
+curl -X POST http://localhost:8000/api/v1/shorten `
+  -H "Content-Type: application/json" `
+  -d '{"long_url": "https://www.google.com"}'
+
+# Shorten a URL with a Custom Alias (e.g. 'myalias')
+curl -X POST http://localhost:8000/api/v1/shorten `
+  -H "Content-Type: application/json" `
+  -d '{"long_url": "https://github.com", "custom_alias": "myalias"}'
+
+# Test Redirection (Header inspection without opening browser)
+curl -I http://localhost:8000/myalias
+
+# View Analytics Stats for a short code
+curl http://localhost:8000/api/v1/stats/myalias
+
+# Check Security Headers (nosniff, DENY, etc.)
+curl -I http://localhost:8000/health
+
+
+================================================================================
+7. RUNNING AUTOMATED TESTS
+================================================================================
+
+# Run unit tests (Key Generation engine + Analytics User-Agent & IP hashing)
+cd "E:\New folder (3)\url_shortner\backend"
+pytest tests/test_keygen.py tests/test_analytics.py -v
+
+
+================================================================================
+8. GIT WORKFLOW COMMANDS
+================================================================================
+
+# Check status of modified and untracked files
+git status
+
+# Stage all backend and frontend changes
+git add backend/ frontend/ COMMANDS.txt
+
+# Commit your changes
+git commit -m "feat: complete module 5 analytics, module 6 rate limiting, and add commands reference"
+
+# Push to your remote branch
+git push origin nitin

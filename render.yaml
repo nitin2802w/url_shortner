@@ -1,0 +1,42 @@
+# render.yaml — Infrastructure-as-Code for Render.com
+# Defines the SHRINK backend (FastAPI), managed PostgreSQL, and managed Redis.
+# Render reads this file automatically when you connect your GitHub repo.
+
+services:
+  # ── FastAPI Backend Web Service ──────────────────────────────────────────────
+  - type: web
+    name: shrink-backend
+    runtime: docker
+    rootDir: backend
+    dockerfilePath: ./Dockerfile
+    plan: free
+    healthCheckPath: /health
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: shrink-db
+          property: connectionString
+      - key: REDIS_URL
+        fromService:
+          type: redis
+          name: shrink-redis
+          property: connectionString
+      - key: BASE_URL
+        # Set this in the Render dashboard to your backend's public URL
+        # e.g. https://shrink-backend.onrender.com
+        sync: false
+      - key: PROJECT_NAME
+        value: SHRINK URL Shortener
+
+  # ── Managed Redis Cache ───────────────────────────────────────────────────────
+  - type: redis
+    name: shrink-redis
+    plan: free
+    maxmemoryPolicy: noeviction
+
+# ── Managed PostgreSQL Database ───────────────────────────────────────────────
+databases:
+  - name: shrink-db
+    databaseName: urlshortener
+    user: postgres
+    plan: free
