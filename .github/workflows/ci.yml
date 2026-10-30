@@ -1,0 +1,101 @@
+name: CI — Test + Deploy
+
+on:
+  push:
+    branches: [nitin, main]
+  pull_request:
+    branches: [main]
+
+env:
+  VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+  VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+
+jobs:
+  # ── Job 1: Run backend unit tests ───────────────────────────────────────────
+  test:
+    name: Unit Tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.13
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+          cache: 'pip'
+          cache-dependency-path: backend/requirements.txt
+
+      - name: Install backend dependencies
+        run: pip install -r requirements.txt
+        working-directory: backend
+
+      - name: Run unit tests (no DB/Redis needed)
+        run: pytest tests/test_keygen.py tests/test_analytics.py -v
+        working-directory: backend
+
+  # ── Job 2: Deploy Preview to Vercel (on Pull Requests) ──────────────────────
+  deploy-preview:
+    name: Preview Deploy
+    needs: test
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install Vercel CLI
+        run: npm install -g vercel@latest
+
+      - name: Pull Vercel environment
+        run: vercel pull --yes --environment=preview --token=${{ secrets.VERCEL_TOKEN }}
+
+      - name: Build project
+        run: vercel build --token=${{ secrets.VERCEL_TOKEN }}
+
+      - name: Deploy Preview
+        run: vercel deploy --prebuilt --token=${{ secrets.VERCEL_TOKEN }}
+
+  # ── Job 3: Deploy to Production Vercel (on push to main) ────────────────────
+  deploy-production:
+    name: Production Deploy
+    needs: test
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install Vercel CLI
+        run: npm install -g vercel@latest
+
+      - name: Pull Vercel environment
+        run: vercel pull --yes --environment=production --token=${{ secrets.VERCEL_TOKEN }}
+
+      - name: Build project
+        run: vercel build --prod --token=${{ secrets.VERCEL_TOKEN }}
+
+      - name: Deploy to Production
+        run: vercel deploy --prebuilt --prod --token=${{ secrets.VERCEL_TOKEN }}
+
+# ────────────────────────────────────────────────────────────────────────────
+# SETUP INSTRUCTIONS:
+# Add these 3 secrets to your GitHub repo:
+#   GitHub repo → Settings → Secrets and variables → Actions → New secret
+#
+#   VERCEL_TOKEN      → Vercel Dashboard → Account Settings → Tokens
+#   VERCEL_ORG_ID     → Run 'vercel link' locally → .vercel/project.json → "orgId"
+#   VERCEL_PROJECT_ID → Same .vercel/project.json → "projectId"
+#
+# Render deploys automatically via its own GitHub integration — no secrets needed here.
+# ────────────────────────────────────────────────────────────────────────────

@@ -14,7 +14,6 @@ __pycache__/
 *.pyd
 *.pdb
 *.egg-info/
-dist/
 build/
 .Python
 venv/
@@ -34,9 +33,25 @@ coverage.xml
 # ── Node / Frontend ───────────────────────────────────────────────────────────
 node_modules/
 .next/
-dist/
+frontend/dist/
 .nuxt/
 .output/
+
+# ── Vite build cache ──────────────────────────────────────────────────────────
+frontend/.vite/
+frontend/.vite-temp/
+
+# ── Vercel ────────────────────────────────────────────────────────────────────
+.vercel/
+
+# ── Render ────────────────────────────────────────────────────────────────────
+.render/
+
+# ── Planning artefacts & binary docs ──────────────────────────────────────────
+*.docx
+*.doc
+*.xlsx
+extensions.txt
 
 # ── OS & Editor ───────────────────────────────────────────────────────────────
 .DS_Store
@@ -45,3 +60,4 @@ Thumbs.db
 .idea/
 *.swp
 *.swo
+*.log
