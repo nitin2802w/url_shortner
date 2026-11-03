@@ -22,9 +22,7 @@ services:
           name: shrink-redis
           property: connectionString
       - key: BASE_URL
-        # Set this in the Render dashboard to your backend's public URL
-        # e.g. https://shrink-backend.onrender.com
-        sync: false
+        value: https://url-shortner-kexm.onrender.com
       - key: PROJECT_NAME
         value: SHRINK URL Shortener
 

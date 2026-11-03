@@ -55,11 +55,11 @@ async def add_security_headers(request: Request, call_next):
     return response
 
 # ---------------------------------------------------------------------------
-# CORS — allow any localhost port (Vite can use 5173, 5174, etc.)
+# CORS — allow localhost (dev) + any Vercel deployment (production)
 # ---------------------------------------------------------------------------
 app.add_middleware(
     CORSMiddleware,
-    allow_origin_regex=r"http://localhost:\d+",
+    allow_origin_regex=r"(http://localhost:\d+|https://.*\.vercel\.app)",
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
